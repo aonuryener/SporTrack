@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>SporTrack | Topluluk</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="header-common"></header>
+    <main class="container">
+        <!-- MESAJ YAZMA ALANI -->
+        <div class="card" id="mesajAlani" style="display:none;">
+            <h3>Toplulukla Paylaş</h3>
+            <textarea id="mesajInput" placeholder="Neler yapıyorsun? (Antrenman, yemek vb.)" rows="3"></textarea>
+            <button class="btn" onclick="mesajGonder()">Gönder</button>
+        </div>
+
+        <div class="card" id="girisUyari" style="display:none; text-align:center;">
+            <p>Mesaj yazabilmek için önce profil oluşturmalısınız.</p>
+            <button class="btn" onclick="location.href='profil.html'">Profile Git</button>
+        </div>
+
+        <h3>Son Paylaşımlar</h3>
+        <div id="mesajAkisi"></div>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+        window.onload = function() {
+            if(currentUser) {
+                document.getElementById('mesajAlani').style.display = "block";
+            } else {
+                document.getElementById('girisUyari').style.display = "block";
+            }
+            mesajlariYukle();
+        }
+
+        function mesajGonder() {
+            const text = document.getElementById('mesajInput').value.trim();
+            if(!text) return;
+
+            // BAN KONTROLÜ
+            const bans = JSON.parse(localStorage.getItem('banliKullanicilar')) || {};
+            const banDurumu = bans[currentUser.nameTag];
+
+            if(banDurumu) {
+                if(banDurumu === "PERMANENT") {
+                    alert("Hesabınız kalıcı olarak yasaklanmıştır.");
+                    return;
+                }
+                if(new Date(banDurumu) > new Date()) {
+                    alert("Yasaklısınız. Kalan süre: " + new Date(banDurumu).toLocaleString());
+                    return;
+                }
+            }
+
+            // MESAJI OLUŞTUR VE KAYDET
+            let mesajlar = JSON.parse(localStorage.getItem('mesajlar')) || [];
+            const yeniMesaj = {
+                text: text,
+                tarih: new Date().toLocaleString('tr-TR'),
+                user: {
+                    nameTag: currentUser.nameTag,
+                    realName: currentUser.realName, // İsmi buraya mühürledik
+                    role: currentUser.role,
+                    photo: currentUser.photo
+                }
+            };
+
+            mesajlar.push(yeniMesaj);
+            localStorage.setItem('mesajlar', JSON.stringify(mesajlar));
+            document.getElementById('mesajInput').value = "";
+            mesajlariYukle();
+        }
+
+        function mesajlariYukle() {
+            const mesajlar = JSON.parse(localStorage.getItem('mesajlar')) || [];
+            const akis = document.getElementById('mesajAkisi');
+            
+            akis.innerHTML = mesajlar.slice().reverse().map(m => {
+                let badge = "";
+                if(m.user.role === 'kurucu') badge = '<span class="badge badge-kurucu">KURUCU</span>';
+                if(m.user.role === 'admin') badge = '<span class="badge badge-admin">ADMIN</span>';
+
+                return `
+                <div class="card">
+                    <div style="display:flex; align-items:center; margin-bottom:10px;">
+                        <img src="${m.user.photo || 'https://via.placeholder.com/45'}" class="msg-img">
+                        <div>
+                            <strong>@${m.user.nameTag}</strong> ${badge}<br>
+                            <small style="color:gray; font-size:10px;">${m.tarih}</small>
+                        </div>
+                    </div>
+                    <p style="font-size:14px; line-height:1.5;">${m.text}</p>
+                </div>`;
+            }).join('');
+        }
+    </script>
+</body>
+</html>

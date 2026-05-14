@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>SporTrack | Kilo Takibi</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header id="header-common"></header>
+    <main class="container">
+        <div class="card" id="girisAlani">
+            <h2>Yeni Kilo Kaydı</h2>
+            <p id="bilgi" style="font-size:12px; color:gray;">Kilonuzu kaydedin. Hatalı girişi sadece bugün düzeltebilirsiniz!</p>
+            <input type="number" step="0.1" id="kiloInput" placeholder="Kilonuz (kg)">
+            <button class="btn" onclick="kiloKaydet()">Kaydet</button>
+        </div>
+
+        <div class="card"><canvas id="kiloGrafik"></canvas></div>
+        
+        <h3>Kayıt Geçmişi</h3>
+        <div id="kiloListe"></div>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+        const bugun = new Date().toLocaleDateString('tr-TR');
+
+        function kiloKaydet() {
+            const kilo = document.getElementById('kiloInput').value;
+            if(!kilo) return;
+
+            let veriler = JSON.parse(localStorage.getItem('kiloVerileri')) || [];
+            
+            // Eğer bugün zaten kayıt varsa üzerine yaz (Düzeltme hakkı)
+            const index = veriler.findIndex(v => v.tarih === bugun);
+            if(index > -1) {
+                veriler[index].kilo = parseFloat(kilo);
+            } else {
+                veriler.push({kilo: parseFloat(kilo), tarih: bugun, timestamp: new Date().getTime()});
+            }
+
+            localStorage.setItem('kiloVerileri', JSON.stringify(veriler));
+            location.reload();
+        }
+
+        function loadKilo() {
+            const v = JSON.parse(localStorage.getItem('kiloVerileri')) || [];
+            const liste = document.getElementById('kiloListe');
+            
+            // Grafik Çizimi
+            new Chart(document.getElementById('kiloGrafik'), {
+                type: 'line',
+                data: {
+                    labels: v.map(i => i.tarih),
+                    datasets: [{ label: 'Kilo (kg)', data: v.map(i => i.kilo), borderColor: '#e63946', tension: 0.3 }]
+                }
+            });
+
+            // Liste ve Düzenleme Kontrolü
+            liste.innerHTML = v.slice().reverse().map((item, idx) => {
+                const duzenlenebilir = item.tarih === bugun;
+                return `
+                    <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><strong>${item.tarih}</strong>: ${item.kilo} kg</div>
+                        ${duzenlenebilir ? 
+                          `<button onclick="document.getElementById('kiloInput').value=${item.kilo}; window.scrollTo(0,0);" 
+                           style="background:#f39c12; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer;">Düzelt</button>` : 
+                          `<span style="font-size:11px; color:gray;">Mühürlendi</span>`}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.onload = loadKilo;
+    </script>
+</body>
+</html>

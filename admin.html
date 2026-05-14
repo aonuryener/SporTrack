@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>SporTrack | Yönetim</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="header-common"></header>
+    <main class="container">
+        <!-- KURUCUYA ÖZEL YETKİ PANELİ -->
+        <div class="card" id="kurucuPanel" style="display:none;">
+            <h3>Kullanıcı Yönetimi</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 10px;">İşlem yapmak istediğiniz kişinin kullanıcı adını yazın:</p>
+            <input type="text" id="targetTag" placeholder="Kullanıcı Adı (@name_tag)">
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:10px;">
+                <button class="btn" style="background:#2ecc71;" onclick="adminYap()">Admin Yap</button>
+                <button class="btn" style="background:#7f8c8d;" onclick="yetkiAl()">Yetkiyi Al</button>
+                <button class="btn" style="background:#f39c12;" onclick="banla(false)">Süreli Ban</button>
+                <button class="btn" style="background:#c0392b;" onclick="banla(true)">Kalıcı Ban</button>
+            </div>
+        </div>
+
+        <h3>Mesaj Yönetimi</h3>
+        <p style="font-size: 11px; color: gray; margin-bottom: 15px;">* Admin ve Kurucular kullanıcıların gerçek isimlerini görebilir.</p>
+        <div id="yonetimList"></div>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+        window.onload = function() {
+            const u = JSON.parse(localStorage.getItem('currentUser'));
+            if(!u || (u.role !== 'kurucu' && u.role !== 'admin')) { 
+                window.location.href="index.html"; 
+                return;
+            }
+            if(u.role === 'kurucu') {
+                document.getElementById('kurucuPanel').style.display="block";
+            }
+            loadList();
+        }
+
+        function adminYap() {
+            const t = document.getElementById('targetTag').value.replace('@','').trim().toLowerCase();
+            if(!t) return;
+            let msgs = JSON.parse(localStorage.getItem('mesajlar')) || [];
+            msgs.forEach(m => { if(m.user.nameTag === t) m.user.role = "admin"; });
+            localStorage.setItem('mesajlar', JSON.stringify(msgs));
+            alert(t + " artık bir Admin!");
+            location.reload();
+        }
+
+        function yetkiAl() {
+            const t = document.getElementById('targetTag').value.replace('@','').trim().toLowerCase();
+            if(!t) return;
+            let msgs = JSON.parse(localStorage.getItem('mesajlar')) || [];
+            msgs.forEach(m => { if(m.user.nameTag === t && m.user.role !== 'kurucu') m.user.role = "user"; });
+            localStorage.setItem('mesajlar', JSON.stringify(msgs));
+            alert(t + " yetkileri alındı.");
+            location.reload();
+        }
+
+        function banla(isPermanent) {
+            const t = document.getElementById('targetTag').value.replace('@','').trim().toLowerCase();
+            if(!t) return;
+            let banSuresi = isPermanent ? "PERMANENT" : new Date(new Date().getTime() + prompt("Dakika:", "10") * 60000).toISOString();
+            let bans = JSON.parse(localStorage.getItem('banliKullanicilar')) || {};
+            bans[t] = banSuresi;
+            localStorage.setItem('banliKullanicilar', JSON.stringify(bans));
+            alert(t + " yasaklandı!");
+        }
+
+        function loadList() {
+            const msgs = JSON.parse(localStorage.getItem('mesajlar')) || [];
+            const listContainer = document.getElementById('yonetimList');
+            
+            if(msgs.length === 0) {
+                listContainer.innerHTML = '<p style="color:gray;">Mesaj bulunamadı.</p>';
+                return;
+            }
+
+            // MESAJ LİSTESİ VE GERÇEK İSİM GÖSTERİMİ
+            listContainer.innerHTML = msgs.slice().reverse().map((m, i) => {
+                // Mesajı atan kişinin gerçek ismini al (eğer veri varsa)
+                const gercekIsim = m.user.realName || "Belirtilmemiş";
+                
+                return `
+                <div class="card" style="border-left: 5px solid #e63946;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <strong style="color:#1d3557;">@${m.user.nameTag}</strong> 
+                            <span style="color:#666; font-size:12px;">(${gercekIsim})</span>
+                        </div>
+                        <button onclick="sil(${msgs.length - 1 - i})" style="color:red; background:none; border:none; cursor:pointer; font-weight:bold;">SİL</button>
+                    </div>
+                    <p style="margin-top:10px; font-size:14px; color:#333;">${m.text}</p>
+                </div>`;
+            }).join('');
+        }
+
+        function sil(index) {
+            if(confirm("Mesajı silmek istediğine emin misin?")) {
+                let msgs = JSON.parse(localStorage.getItem('mesajlar'));
+                msgs.splice(index, 1);
+                localStorage.setItem('mesajlar', JSON.stringify(msgs));
+                loadList();
+            }
+        }
+    </script>
+</body>
+</html>

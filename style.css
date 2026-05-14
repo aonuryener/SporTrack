@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;900&display=swap');
+:root { --kirmizi: #e63946; --koyu: #1d3557; --beyaz: #ffffff; --arka: #f8f9fa; }
+body { font-family: 'Poppins', sans-serif; background: var(--arka); margin: 0; color: var(--koyu); }
+header { background: var(--beyaz); padding: 25px 0 10px; text-align: center; border-bottom: 5px solid var(--kirmizi); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.logo { font-size: 40px; font-weight: 900; text-decoration: none; color: var(--koyu); display: block; }
+.logo span { color: var(--kirmizi); }
+.nav-links { list-style: none; display: flex; justify-content: center; gap: 20px; padding: 10px 0; }
+.nav-links a { text-decoration: none; color: var(--koyu); font-weight: 600; font-size: 14px; }
+.container { max-width: 600px; margin: 30px auto; padding: 0 20px; }
+.card { background: var(--beyaz); padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; border-top: 5px solid var(--kirmizi); }
+.btn { background: var(--kirmizi); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+.badge { padding: 3px 10px; border-radius: 50px; font-size: 10px; font-weight: bold; margin-left: 5px; color: white; text-transform: uppercase; }
+.badge-kurucu { background: #8a2be2; } /* Mor */
+.badge-admin { background: #2ecc71; }   /* Yeşil */
+input, select, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+.msg-img { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; vertical-align: middle; margin-right: 10px; border: 2px solid var(--kirmizi); }
+canvas { width: 100% !important; height: auto !important; }

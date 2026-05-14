@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>SporTrack | Profil</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-card { text-align: center; padding: 30px 20px; }
+        .profile-card img { width: 130px; height: 130px; border-radius: 50%; object-fit: cover; border: 5px solid var(--kirmizi); margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .role-badge { display: inline-block; padding: 6px 18px; border-radius: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; margin-top: 10px; color: white; }
+        .update-photo-btn { background: #f0f2f5; color: #555; font-size: 11px; padding: 5px 10px; border-radius: 5px; cursor: pointer; border: 1px solid #ddd; display: inline-block; margin-top: 5px; transition: 0.3s; }
+        .update-photo-btn:hover { background: #e2e6ea; }
+        .info-note { margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px; font-size: 12px; color: #aaa; }
+    </style>
+</head>
+<body>
+    <header id="header-common"></header>
+    <main class="container">
+        
+        <!-- PROFİL KARTI (Giriş Yapılmışsa) -->
+        <div id="profileView" class="card profile-card" style="display:none;">
+            <div style="position: relative; display: inline-block;">
+                <img id="viewPhoto" src="https://via.placeholder.com/130" alt="Profil">
+                <br>
+                <label for="updatePhotoInput" class="update-photo-btn">Fotoğrafı Değiştir</label>
+                <input type="file" id="updatePhotoInput" accept="image/*" style="display:none;" onchange="fotoGuncelle(this)">
+            </div>
+            
+            <h2 id="viewRealName" style="margin:10px 0 5px 0; color:var(--koyu);">Ad Soyad</h2>
+            <strong id="viewNameTag" style="color:var(--kirmizi); font-size:18px;">@kullanici_adi</strong>
+            <br>
+            <div id="viewRole" class="role-badge">ROLE</div>
+            
+            <div class="info-note">
+                Hesap değiştirmek için menüdeki <strong>Çıkış Yap</strong> butonunu kullanabilirsiniz.
+            </div>
+        </div>
+
+        <!-- GİRİŞ & KAYIT FORMU (Giriş Yapılmamışsa) -->
+        <div id="loginView" class="card" style="display:none;">
+            <h2 style="margin-bottom:20px;">Giriş Yap / Kayıt Ol</h2>
+            <div style="background:#f0f2f5; padding:15px; border-radius:10px; margin-bottom:20px;">
+                <label style="font-size:12px; font-weight:bold;">Kullanıcı Adı:</label>
+                <input type="text" id="nameTag" placeholder="Örn: user_123">
+                <label style="font-size:12px; font-weight:bold;">Şifre:</label>
+                <input type="password" id="password" placeholder="Şifreniz">
+            </div>
+            <div style="border-top:1px dashed #ccc; padding-top:15px;">
+                <p style="font-size:12px; color:#e63946; font-weight:bold;">Yeni Kayıt İçin:</p>
+                <input type="text" id="realName" placeholder="Adınız Soyadınız">
+                <label style="display:block; margin-top:10px; font-size:12px;">Profil Fotoğrafı Seç:</label>
+                <input type="file" id="photoInput" accept="image/*">
+            </div>
+            <button class="btn" onclick="profilKaydet()" style="margin-top:20px;">Sisteme Giriş Yap</button>
+        </div>
+    </main>
+
+    <script src="common.js"></script>
+    <script>
+        window.onload = function() {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            if(user) {
+                document.getElementById('profileView').style.display = "block";
+                document.getElementById('viewRealName').innerText = user.realName;
+                document.getElementById('viewNameTag').innerText = "@" + user.nameTag;
+                document.getElementById('viewPhoto').src = user.photo || "https://via.placeholder.com/130";
+                
+                const roleBadge = document.getElementById('viewRole');
+                roleBadge.innerText = user.role;
+                if(user.role === 'kurucu') roleBadge.style.background = "#8a2be2";
+                else if(user.role === 'admin') roleBadge.style.background = "#2ecc71";
+                else roleBadge.style.background = "#95a5a6";
+            } else {
+                document.getElementById('loginView').style.display = "block";
+            }
+        }
+
+        // ESKİ ÜYELER İÇİN FOTOĞRAF GÜNCELLEME FONKSİYONU
+        function fotoGuncelle(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const newPhoto = e.target.result;
+                    let user = JSON.parse(localStorage.getItem('currentUser'));
+                    let allUsers = JSON.parse(localStorage.getItem('allUsers')) || {};
+
+                    // Veriyi güncelle
+                    user.photo = newPhoto;
+                    allUsers[user.nameTag].photo = newPhoto;
+
+                    // Kaydet
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    localStorage.setItem('allUsers', JSON.stringify(allUsers));
+
+                    // Arayüzü güncelle
+                    document.getElementById('viewPhoto').src = newPhoto;
+                    alert("Profil fotoğrafınız başarıyla güncellendi!");
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function profilKaydet() {
+            const nt = document.getElementById('nameTag').value.trim().toLowerCase().replace('@','');
+            const pw = document.getElementById('password').value.trim();
+            const rt = document.getElementById('realName').value.trim();
+            const photoFile = document.getElementById('photoInput').files[0];
+            
+            if(!nt || !pw) return alert("Kullanıcı adı ve şifre girmelisiniz!");
+            let allUsers = JSON.parse(localStorage.getItem('allUsers')) || {};
+
+            if(allUsers[nt]) {
+                if(allUsers[nt].password === pw) {
+                    localStorage.setItem('currentUser', JSON.stringify(allUsers[nt]));
+                    location.reload();
+                    return;
+                } else return alert("Hatalı şifre!");
+            }
+
+            if(!rt) return alert("Yeni kayıt için Ad Soyad alanı boş bırakılamaz!");
+            let role = (nt === "onur_yener") ? "kurucu" : "user";
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const newUser = { realName: rt, nameTag: nt, password: pw, role: role, photo: e.target.result || null };
+                allUsers[nt] = newUser;
+                localStorage.setItem('allUsers', JSON.stringify(allUsers));
+                localStorage.setItem('currentUser', JSON.stringify(newUser));
+                location.reload();
+            };
+            if(photoFile) reader.readAsDataURL(photoFile);
+            else reader.onload({ target: { result: null } });
+        }
+    </script>
+</body>
+</html>
