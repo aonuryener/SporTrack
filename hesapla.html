@@ -2,75 +2,79 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>SporTrack | Hesapla</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SporTrack - Hesaplayıcı</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header id="header-common"></header>
+
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🔥</span>SPOR<span class="logo-highlight">TRACK</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Kilo Takibi</a></li>
+                <li><a href="blog.html">Topluluk</a></li>
+                <li><a href="hesapla.html" class="active">Hesapla</a></li>
+                <li><a href="profil.html">Profilim</a></li>
+                <li><a href="admin.html" class="admin-link">Yönetim</a></li>
+                <li><a href="logout.html" class="logout-link">Çıkış Yap</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <main class="container">
-        <div class="card">
-            <h2>Detaylı Kalori & Makro Hesapla</h2>
-            <select id="cinsiyet"><option value="erkek">Erkek</option><option value="kadin">Kadın</option></select>
-            <input type="number" id="yas" placeholder="Yaş">
-            <input type="number" id="boy" placeholder="Boy (cm)">
-            <input type="number" id="kilo" placeholder="Kilo (kg)">
-            
-            <label>Aktivite Seviyesi:</label>
-            <select id="aktivite">
-                <option value="1.2">Hareketsiz (Spor yok)</option>
-                <option value="1.375">Hafif (Haftada 1-2 gün spor)</option>
-                <option value="1.55">Orta (Haftada 3-5 gün spor)</option>
-                <option value="1.725">Yüksek (Haftada 6-7 gün ağır spor)</option>
-            </select>
+        <section class="calculator-page-container">
+            <h2>📊 Detaylı Kalori & Makro Hesapla</h2>
+            <p style="color: #94a3b8; font-size: 0.9rem;">Kişisel değerlerinizi girerek bilimsel formüllerle hedefinizi belirleyin.</p>
 
-            <label>Hedefiniz:</label>
-            <select id="hedef">
-                <option value="verme">Kilo Vermek (Yağ Yakımı)</option>
-                <option value="koruma">Kiloyu Korumak</option>
-                <option value="alma">Kilo Almak (Kas Kütlesi)</option>
-            </select>
-
-            <button class="btn" onclick="detayliHesapla()">Hesapla ve Makroları Gör</button>
-            
-            <div id="sonucAlani" style="margin-top:25px; display:none;">
-                <h3 id="kaloriSonuc" style="color:var(--kirmizi);"></h3>
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; text-align:center;">
-                    <div class="card" style="border-top:3px solid #3498db; padding:10px;"><strong>Protein</strong><br><span id="p"></span>g</div>
-                    <div class="card" style="border-top:3px solid #f1c40f; padding:10px;"><strong>Karb.</strong><br><span id="k"></span>g</div>
-                    <div class="card" style="border-top:3px solid #2ecc71; padding:10px;"><strong>Yağ</strong><br><span id="y"></span>g</div>
+            <div class="calc-form-grid">
+                <div class="form-group">
+                    <label for="gender">Cinsiyet</label>
+                    <select id="gender">
+                        <option value="erkek">Erkek</option>
+                        <option value="kadin">Kadın</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="age">Yaş</label>
+                    <input type="number" id="age" placeholder="Örn: 22">
+                </div>
+                <div class="form-group">
+                    <label for="height">Boy (cm)</label>
+                    <input type="number" id="height" placeholder="Örn: 180">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Kilo (kg)</label>
+                    <input type="number" id="weight" placeholder="Örn: 75">
+                </div>
+                <div class="form-group">
+                    <label for="activity">Aktivite Seviyesi</label>
+                    <select id="activity">
+                        <option value="1.2">Hareketsiz (Spor yok)</option>
+                        <option value="1.375">Hafif Aktif (Haftada 1-3 gün spor)</option>
+                        <option value="1.55">Orta Aktif (Haftada 3-5 gün spor)</option>
+                        <option value="1.725">Çok Aktif (Haftada 6-7 gün ağır spor)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="goal">Hedefiniz</label>
+                    <select id="goal">
+                        <option value="lose">Kilo Vermek (Yağ Yakımı)</option>
+                        <option value="maintain">Kiloyu Korumak</option>
+                        <option value="gain">Kilo Almak (Kas Kazanımı)</option>
+                    </select>
+                </div>
+                <div class="form-group-full">
+                    <button id="calcBtn" class="btn-primary">Hesapla ve Makroları Gör</button>
                 </div>
             </div>
-        </div>
+
+            <div id="calcResults" class="calc-results-box"></div>
+        </section>
     </main>
+
     <script src="common.js"></script>
-    <script>
-        function detayliHesapla() {
-            const c = document.getElementById('cinsiyet').value;
-            const y = parseFloat(document.getElementById('yas').value);
-            const b = parseFloat(document.getElementById('boy').value);
-            const k = parseFloat(document.getElementById('kilo').value);
-            const akt = parseFloat(document.getElementById('aktivite').value);
-            const hdf = document.getElementById('hedef').value;
-
-            if(!y || !b || !k) return alert("Lütfen tüm alanları doldurun!");
-
-            // BMR (Mifflin-St Jeor)
-            let bmr = (c === 'erkek') ? (10 * k + 6.25 * b - 5 * y + 5) : (10 * k + 6.25 * b - 5 * y - 161);
-            let tdee = bmr * akt;
-
-            // Hedefe göre kalori ayarı
-            if(hdf === "verme") tdee -= 500;
-            if(hdf === "alma") tdee += 500;
-
-            const finalKalori = Math.round(tdee);
-            document.getElementById('kaloriSonuc').innerText = "Günlük Hedef: " + finalKalori + " kcal";
-            
-            // Makro Paylaşımı (Basitçe: %30 P, %40 K, %30 Y)
-            document.getElementById('p').innerText = Math.round((finalKalori * 0.30) / 4);
-            document.getElementById('k').innerText = Math.round((finalKalori * 0.40) / 4);
-            document.getElementById('y').innerText = Math.round((finalKalori * 0.30) / 9);
-            document.getElementById('sonucAlani').style.display = "block";
-        }
-    </script>
 </body>
 </html>
